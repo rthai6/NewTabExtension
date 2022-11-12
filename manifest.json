@@ -4,9 +4,16 @@
   "version": "1.0",
   "manifest_version": 3,
   "action": {
-    "default_popup": "hello.html",
+    "default_popup": "options.html",
     "default_icon": "hello_extensions.png"
   },
+  "permissions": [
+    "storage",
+    "bookmarks"
+  ],
+  "host_permissions": [
+    "https://www.youtube.com/"
+  ],
 	"chrome_url_overrides":
 	{
 		"newtab": "newtab.html"
