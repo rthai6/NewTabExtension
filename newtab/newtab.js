@@ -26,8 +26,8 @@ const getLivestream = async (channelUrl) => {
 const findFirstLivestream = async () => {
     const streamList = localStorage.getItem("streamList");
     if (streamList) {
-        const urls = streamList.split(/\r?\n|\r|\n/g);
         if (urls.length) {
+            const urls = streamList.split(/\r?\n|\r|\n/g);
             for (const channel of urls) {
                 const liveUrl = await getLivestream(channel);
                 if (liveUrl) {
