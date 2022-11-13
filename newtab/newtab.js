@@ -9,16 +9,18 @@ const urlToDocument = async (url) => {
 
 // https://stackoverflow.com/questions/32454238/how-to-check-if-youtube-channel-is-streaming-live
 const getLivestream = async (channelUrl) => {
-    const html = await urlToDocument(`${channelUrl}/live`);
-    const startDateString = html.querySelector("meta[itemprop=startDate]")?.getAttribute("content");
-    if (!startDateString) return;
+    const live = await urlToDocument(`${channelUrl}/live`);
 
+    const canonicalURLTag = live.querySelector('link[rel=canonical]')
+    const canonicalURL = canonicalURLTag.getAttribute('href')
+    const isStreaming = canonicalURL.includes('/watch?v=')
+    if (!isStreaming) return;
+
+    const redirect = await urlToDocument(canonicalURL);
+    const startDateString = redirect.querySelector("meta[itemprop=startDate]")?.getAttribute("content");
     const startDate = new Date(startDateString);
     const currentTime = new Date();
     if (currentTime < startDate) return;
-
-    const canonicalURLTag = html.querySelector('link[rel=canonical]')
-    const canonicalURL = canonicalURLTag.getAttribute('href')
 
     return canonicalURL;
 }
@@ -26,8 +28,8 @@ const getLivestream = async (channelUrl) => {
 const findFirstLivestream = async () => {
     const streamList = localStorage.getItem("streamList");
     if (streamList) {
+        const urls = streamList.split(/\r?\n|\r|\n/g);
         if (urls.length) {
-            const urls = streamList.split(/\r?\n|\r|\n/g);
             for (const channel of urls) {
                 const liveUrl = await getLivestream(channel);
                 if (liveUrl) {
