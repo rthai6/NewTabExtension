@@ -1,22 +1,80 @@
-html,
-body {
-  margin: 0;
-  padding: 0;
-}
-
 * {
   box-sizing: border-box;
 }
 
-.grid {
+body {
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #1e1e1e;
+  user-select: none;
+  color: white;
+}
+
+.modal {
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  padding: 1em;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+  background-color: #1e1e1e;
+  margin: auto;
+  padding: 1em;
+  width: 50%;
+}
+
+#header-bar {
+  background-color: #252526;
+}
+
+#widget-grid {
+  width: 100%;
+  height: 100%;
+  gap: 1em;
+  padding: 1em;
+  flex-grow: 1;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: repeat(2, 1fr);
-  grid-column-gap: 10px;
-  grid-row-gap: 10px;
 }
 
 .grid-item {
-  height: 50vh;
-  width: 50vw;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  background-color: #252526;
+  overflow: auto;
+  /* padding: 0;
+  margin: 0; */
+}
+
+.bookmark-list {
+  list-style-type: none;
+}
+
+.bookmark-folder {
+  /* cursor: pointer; */
+}
+
+.hidden {
+  display: none;
+}
+
+.active {
+  display: block;
+}
+
+.control-button {
+  float: right;
+}
+.control-button:hover,
+.control-button:focus {
+  cursor: pointer;
 }

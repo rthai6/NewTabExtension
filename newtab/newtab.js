@@ -26,7 +26,7 @@ const getLivestream = async (channelUrl) => {
 }
 
 const findFirstLivestream = async () => {
-    const streamList = localStorage.getItem("streamList");
+    const streamList = localStorage.getItem("stream-list");
     if (streamList) {
         const urls = streamList.split(/\r?\n|\r|\n/g);
         if (urls.length) {
@@ -35,16 +35,61 @@ const findFirstLivestream = async () => {
                 if (liveUrl) {
                     const params = new URLSearchParams(new URL(liveUrl).search);
                     const videoId = params.get("v");
-                    return `https://www.youtube.com/embed/${videoId}`; //?autoplay=1
+                    return `https://www.youtube.com/embed/${videoId}`;
                 }
             }
         }
     }
 }
 
-window.addEventListener("DOMContentLoaded", async () => {
+const loadGrid = () => {
+    const rows = localStorage.getItem("rows");
+    const columns = localStorage.getItem("columns");
+    var grid = document.getElementById("widget-grid");
+    grid.style.gridTemplateRows = "1fr ".repeat(rows);
+    grid.style.gridTemplateColumns = "1fr ".repeat(columns);
+
+    var folders = document.getElementsByClassName("bookmark-folder");
+    for (const folder of folders) {
+        folder.querySelector("span").addEventListener("click", (e) => {
+            e.currentTarget.parentElement.querySelector(".hidden").classList.toggle("active");
+        });
+    }
     findFirstLivestream().then((url) => {
-        var stream = document.getElementById("stream");
-        stream.setAttribute("src", url)
+        if (url) {
+            var stream = document.getElementById("stream");
+            stream.setAttribute("src", url)
+        }
+        else {
+            // todo: handle no livestream
+        }
     });
+}
+
+const initializeElement = (id, defaultValue) => {
+    const data = localStorage.getItem(id);
+    const element = document.getElementById(id);
+    element.value = data ?? defaultValue;
+    element.addEventListener("input", (e) => {
+        localStorage.setItem(id, e.currentTarget.value);
+    })
+}
+
+const loadOptions = () => {
+    const modal = document.getElementById("options-modal");
+    document.getElementById("options").addEventListener("click", () => {
+        modal.classList.add("active");
+    })
+    document.getElementById("options-modal-close").addEventListener("click", () => {
+        modal.classList.remove("active");
+    })
+
+    initializeElement("rows", 2);
+    initializeElement("columns", 2);
+    initializeElement("stream-list", "");
+}
+
+window.addEventListener("DOMContentLoaded", async () => {
+    loadGrid();
+    loadOptions();
 })

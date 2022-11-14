@@ -4,11 +4,77 @@
     <title>New Tab</title>
     <link rel="stylesheet" href="newtab.css">
     <script src="newtab.js" defer></script>
+    <meta charset="UTF-8">
   </head>
 
   <body>
-    <div class="grid">
+    <div id="options-modal" class="modal hidden">
+      <div class="modal-content">
+        <span id="options-modal-close" class="control-button">&times;</span>
+        <label for="grid-size">Grid Size</label>
+        <div id="grid-size">
+          <select id="columns">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+            <option value="11">11</option>
+            <option value="12">12</option>
+          </select>
+          x
+          <select id="rows">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+            <option value="11">11</option>
+            <option value="12">12</option>
+          </select><br>
+        </div>
+
+        <label for="stream-list">Stream List:</label><br>
+        <textarea id="stream-list" rows="10" cols="50" placeholder="https://www.youtube.com/c/LofiGirl"></textarea>
+      </div>
+    </div>
+    <div id="header-bar"><span id="options" class="control-button">🔧</span></div>
+    <div id="widget-grid">
       <iframe id="stream" class="grid-item" allowfullscreen></iframe>
+      <iframe class="grid-item" src="https://www.youtube.com/embed?listType=playlist&list=RDNTJmWsGFphQ" allowfullscreen></iframe>
+      <ul class="grid-item bookmark-list">
+        <li class="bookmark-folder"><span>📁Beverages</span>
+          <ul class="bookmark-list hidden">
+            <li>Water</li>
+            <li>Coffee</li>
+            <li class="bookmark-folder"><span>📁Tea</span>
+              <ul class="bookmark-list hidden">
+                <li>Black Tea</li>
+                <li>White Tea</li>
+                <li class="bookmark-folder"><span>📁Green Tea</span>
+                  <ul class="bookmark-list hidden">
+                    <li>Sencha</li>
+                    <li>Gyokuro</li>
+                    <li>Matcha</li>
+                    <li>Pi Lo Chun</li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+      <div class="grid-item">Placeholder</div>
       <div class="grid-item">Placeholder</div>
       <div class="grid-item">Placeholder</div>
       <div class="grid-item">Placeholder</div>
