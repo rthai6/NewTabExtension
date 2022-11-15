@@ -84,6 +84,7 @@ const loadOptions = () => {
         modal.classList.remove("active");
     })
 
+    // todo: parallel promises
     initializeElement("rows", 2);
     initializeElement("columns", 2);
     initializeElement("stream-list", "");

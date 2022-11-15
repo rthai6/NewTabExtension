@@ -8,6 +8,40 @@
   </head>
 
   <body>
+    <div id="header-bar"><span id="options" class="control-button">🔧</span></div>
+    <div id="widget-grid">
+      <iframe id="stream" class="grid-item" allowfullscreen></iframe>
+      <iframe class="grid-item" src="https://www.youtube.com/embed?listType=playlist&list=RDNTJmWsGFphQ" allowfullscreen></iframe>
+      <ul class="grid-item bookmark-list">
+        <li class="bookmark-folder"><span>📁Beverages</span>
+          <ul class="bookmark-list hidden">
+            <li>Water</li>
+            <li>Coffee</li>
+            <li class="bookmark-folder"><span>📁Tea</span>
+              <ul class="bookmark-list hidden">
+                <li>Black Tea</li>
+                <li>White Tea</li>
+                <li class="bookmark-folder"><span>📁Green Tea</span>
+                  <ul class="bookmark-list hidden">
+                    <li>Sencha</li>
+                    <li>Gyokuro</li>
+                    <li>Matcha</li>
+                    <li>Pi Lo Chun</li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+      <div class="grid-item">Placeholder</div>
+      <div class="grid-item">Placeholder</div>
+      <div class="grid-item">Placeholder</div>
+      <div class="grid-item">Placeholder</div>
+      <div class="grid-item">Placeholder</div>
+      <div class="grid-item">Placeholder</div>
+    </div>
+
     <div id="options-modal" class="modal hidden">
       <div class="modal-content">
         <span id="options-modal-close" class="control-button">&times;</span>
@@ -47,39 +81,6 @@
         <label for="stream-list">Stream List:</label><br>
         <textarea id="stream-list" rows="10" cols="50" placeholder="https://www.youtube.com/c/LofiGirl"></textarea>
       </div>
-    </div>
-    <div id="header-bar"><span id="options" class="control-button">🔧</span></div>
-    <div id="widget-grid">
-      <iframe id="stream" class="grid-item" allowfullscreen></iframe>
-      <iframe class="grid-item" src="https://www.youtube.com/embed?listType=playlist&list=RDNTJmWsGFphQ" allowfullscreen></iframe>
-      <ul class="grid-item bookmark-list">
-        <li class="bookmark-folder"><span>📁Beverages</span>
-          <ul class="bookmark-list hidden">
-            <li>Water</li>
-            <li>Coffee</li>
-            <li class="bookmark-folder"><span>📁Tea</span>
-              <ul class="bookmark-list hidden">
-                <li>Black Tea</li>
-                <li>White Tea</li>
-                <li class="bookmark-folder"><span>📁Green Tea</span>
-                  <ul class="bookmark-list hidden">
-                    <li>Sencha</li>
-                    <li>Gyokuro</li>
-                    <li>Matcha</li>
-                    <li>Pi Lo Chun</li>
-                  </ul>
-                </li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-      </ul>
-      <div class="grid-item">Placeholder</div>
-      <div class="grid-item">Placeholder</div>
-      <div class="grid-item">Placeholder</div>
-      <div class="grid-item">Placeholder</div>
-      <div class="grid-item">Placeholder</div>
-      <div class="grid-item">Placeholder</div>
     </div>
   </body>
 </html>

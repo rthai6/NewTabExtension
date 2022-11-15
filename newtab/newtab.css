@@ -37,11 +37,10 @@ body {
 }
 
 #widget-grid {
-  width: 100%;
-  height: 100%;
   gap: 1em;
   padding: 1em;
   flex-grow: 1;
+  overflow: auto;
   display: grid;
 }
 
@@ -51,8 +50,6 @@ body {
   margin: 0;
   background-color: #252526;
   overflow: auto;
-  /* padding: 0;
-  margin: 0; */
 }
 
 .bookmark-list {
