@@ -42,22 +42,61 @@ const findFirstLivestream = async () => {
     }
 }
 
+const loadBookmarks = (root) => {
+    const bookmarks = document.getElementById("bookmarks");
+    const rootList = document.createElement("ul");
+    rootList.classList.add("bookmark-list");
+    bookmarks.appendChild(rootList);
+
+    console.log(root);
+    const queue = [[rootList, root[0]]];
+    while (queue.length) {
+        const [parent, node] = queue.shift();
+        const rootItem = document.createElement("li");
+        if (node.children) {
+            rootItem.classList.add("bookmark-folder");
+
+            const span = document.createElement("span");
+            const text = document.createTextNode(`📁${node.title}`);
+            span.addEventListener("click", (e) => {
+                e.currentTarget.parentElement.querySelector(".hidden").classList.toggle("active");
+            });
+            span.appendChild(text);
+            rootItem.appendChild(span);
+
+            const list = document.createElement("ul");
+            list.classList.add("bookmark-list");
+            list.classList.add("hidden");
+            rootItem.appendChild(list);
+            node.children.map((n) => {
+                queue.push([list, n]);
+            })
+        }
+        else {
+            const link = document.createElement("a");
+            link.setAttribute("href", node.url);
+            rootItem.appendChild(link);
+            const text = document.createTextNode(node.title);
+            link.appendChild(text);
+        }
+        parent.appendChild(rootItem);
+    }
+}
+
 const loadGrid = () => {
     const rows = localStorage.getItem("rows");
     const columns = localStorage.getItem("columns");
-    var grid = document.getElementById("widget-grid");
+    const grid = document.getElementById("widget-grid");
     grid.style.gridTemplateRows = "1fr ".repeat(rows);
     grid.style.gridTemplateColumns = "1fr ".repeat(columns);
 
-    var folders = document.getElementsByClassName("bookmark-folder");
-    for (const folder of folders) {
-        folder.querySelector("span").addEventListener("click", (e) => {
-            e.currentTarget.parentElement.querySelector(".hidden").classList.toggle("active");
-        });
-    }
+    chrome.bookmarks.getTree((results) => {
+        loadBookmarks(results);
+    })
+
     findFirstLivestream().then((url) => {
         if (url) {
-            var stream = document.getElementById("stream");
+            const stream = document.getElementById("stream");
             stream.setAttribute("src", url)
         }
         else {
