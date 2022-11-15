@@ -57,6 +57,7 @@ const loadBookmarks = (root) => {
             rootItem.classList.add("bookmark-folder");
 
             const span = document.createElement("span");
+            span.classList.add("bookmark-folder-text");
             const text = document.createTextNode(`📁${node.title}`);
             span.addEventListener("click", (e) => {
                 e.currentTarget.parentElement.querySelector(".hidden").classList.toggle("active");

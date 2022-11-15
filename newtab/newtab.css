@@ -13,6 +13,10 @@ body {
   color: white;
 }
 
+a {
+  color: inherit;
+}
+
 .modal {
   position: fixed;
   z-index: 1;
@@ -55,15 +59,13 @@ body {
 .bookmark-list {
   list-style-type: none;
 }
-
-.bookmark-folder {
-  /* cursor: pointer; */
+.bookmark-folder-text {
+  cursor: pointer;
 }
 
 .hidden {
   display: none;
 }
-
 .active {
   display: block;
 }
