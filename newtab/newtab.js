@@ -1,5 +1,8 @@
 "use strict";
 
+const DEFAULT_ROWS = 2;
+const DEFAULT_COLS = 2;
+
 const parser = new DOMParser();
 const urlToDocument = async (url) => {
     const response = await fetch(url);
@@ -84,8 +87,8 @@ const loadBookmarks = (root) => {
 }
 
 const loadGrid = () => {
-    const rows = localStorage.getItem("rows");
-    const columns = localStorage.getItem("columns");
+    const rows = localStorage.getItem("rows") ?? DEFAULT_ROWS;
+    const columns = localStorage.getItem("columns") ?? DEFAULT_COLS;
     const grid = document.getElementById("widget-grid");
     grid.style.gridTemplateRows = "1fr ".repeat(rows);
     grid.style.gridTemplateColumns = "1fr ".repeat(columns);
@@ -125,8 +128,8 @@ const loadOptions = () => {
 
     // todo: parallel promises
     initializeElement("header-links-list", "");
-    initializeElement("rows", 2);
-    initializeElement("columns", 2);
+    initializeElement("rows", DEFAULT_ROWS);
+    initializeElement("columns", DEFAULT_COLS);
     initializeElement("stream-list", "");
 }
 
