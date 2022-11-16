@@ -38,8 +38,11 @@ a {
 
 #header-bar {
   background-color: #252526;
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 1em;
+  flex-direction: row-reverse;
 }
-
 #widget-grid {
   gap: 1em;
   padding: 1em;
@@ -76,11 +79,4 @@ a {
 .control-button:hover,
 .control-button:focus {
   cursor: pointer;
-}
-
-#header-links {
-  float: left;
-  display: flex;
-  flex-wrap: wrap;
-  column-gap: 1em;
 }

@@ -48,7 +48,6 @@ const loadBookmarks = (root) => {
     rootList.classList.add("bookmark-list");
     bookmarks.appendChild(rootList);
 
-    console.log(root);
     const queue = [[rootList, root[0]]];
     while (queue.length) {
         const [parent, node] = queue.shift();
@@ -135,14 +134,14 @@ const loadHeader = () => {
     const headerLinksList = localStorage.getItem("header-links-list");
     if (headerLinksList) {
         const urls = headerLinksList.split(/\r?\n|\r|\n/g);
-        const links = document.getElementById("header-links");
-        for (const url of urls) {
+        const bar = document.getElementById("header-bar");
+        urls.map((url) => {
             const link = document.createElement("a");
             link.setAttribute("href", url);
             const text = document.createTextNode(url);
             link.appendChild(text);
-            links.appendChild(link);
-        }
+            bar.appendChild(link);
+        })
     }
 }
 
