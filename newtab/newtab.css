@@ -77,3 +77,10 @@ a {
 .control-button:focus {
   cursor: pointer;
 }
+
+#header-links {
+  float: left;
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 1em;
+}

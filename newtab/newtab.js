@@ -125,12 +125,29 @@ const loadOptions = () => {
     })
 
     // todo: parallel promises
+    initializeElement("header-links-list", "");
     initializeElement("rows", 2);
     initializeElement("columns", 2);
     initializeElement("stream-list", "");
 }
 
+const loadHeader = () => {
+    const headerLinksList = localStorage.getItem("header-links-list");
+    if (headerLinksList) {
+        const urls = headerLinksList.split(/\r?\n|\r|\n/g);
+        const links = document.getElementById("header-links");
+        for (const url of urls) {
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            const text = document.createTextNode(url);
+            link.appendChild(text);
+            links.appendChild(link);
+        }
+    }
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
+    loadHeader();
     loadGrid();
     loadOptions();
 })

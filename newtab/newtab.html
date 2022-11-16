@@ -8,22 +8,29 @@
   </head>
 
   <body>
-    <div id="header-bar"><span id="options" class="control-button">🔧</span></div>
+    <div id="header-bar">
+      <div id="header-links"></div>
+      <span id="options" class="control-button">🔧</span>
+    </div>
     <div id="widget-grid">
       <iframe id="stream" class="grid-item" allowfullscreen></iframe>
       <iframe class="grid-item" src="https://www.youtube.com/embed?listType=playlist&list=RDNTJmWsGFphQ" allowfullscreen></iframe>
       <div id="bookmarks" class="grid-item"></div>
+      <!-- <div class="grid-item">Placeholder</div>
       <div class="grid-item">Placeholder</div>
       <div class="grid-item">Placeholder</div>
       <div class="grid-item">Placeholder</div>
       <div class="grid-item">Placeholder</div>
-      <div class="grid-item">Placeholder</div>
-      <div class="grid-item">Placeholder</div>
+      <div class="grid-item">Placeholder</div> -->
     </div>
 
     <div id="options-modal" class="modal hidden">
       <div class="modal-content">
         <span id="options-modal-close" class="control-button">&times;</span>
+
+        <label for="header-links-list">Header Links List:</label><br>
+        <textarea id="header-links-list" rows="10" cols="50" placeholder="https://mail.google.com/"></textarea><br>
+
         <label for="grid-size">Grid Size</label>
         <div id="grid-size">
           <select id="columns">
