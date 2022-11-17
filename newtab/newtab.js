@@ -46,10 +46,13 @@ const findFirstLivestream = async () => {
 }
 
 const loadBookmarks = (root) => {
+    console.log(root);
     const bookmarks = document.getElementById("bookmarks");
     const rootList = document.createElement("ul");
     rootList.classList.add("bookmark-list");
     bookmarks.appendChild(rootList);
+    // use object because hashset isn't stringifiable
+    const openBookmarks = JSON.parse(localStorage.getItem("open-bookmarks")) ?? {};
 
     const queue = [[rootList, root[0]]];
     while (queue.length) {
@@ -63,6 +66,15 @@ const loadBookmarks = (root) => {
             const text = document.createTextNode(`📁${node.title}`);
             span.addEventListener("click", (e) => {
                 e.currentTarget.parentElement.querySelector(".hidden").classList.toggle("active");
+                const active = e.currentTarget.parentElement.querySelector(".hidden").classList.contains("active");
+                const newOpenBookmarks = JSON.parse(localStorage.getItem("open-bookmarks")) ?? {};
+                if (active) {
+                    newOpenBookmarks[node.id] = null;
+                }
+                else {
+                    delete newOpenBookmarks[node.id];
+                }
+                localStorage.setItem("open-bookmarks", JSON.stringify(newOpenBookmarks))
             });
             span.appendChild(text);
             rootItem.appendChild(span);
@@ -70,17 +82,18 @@ const loadBookmarks = (root) => {
             const list = document.createElement("ul");
             list.classList.add("bookmark-list");
             list.classList.add("hidden");
-            rootItem.appendChild(list);
+            if (Object.hasOwn(openBookmarks, node.id)) list.classList.add("active");
             node.children.map((n) => {
                 queue.push([list, n]);
             })
+            rootItem.appendChild(list);
         }
         else {
             const link = document.createElement("a");
             link.setAttribute("href", node.url);
-            rootItem.appendChild(link);
             const text = document.createTextNode(node.title);
             link.appendChild(text);
+            rootItem.appendChild(link);
         }
         parent.appendChild(rootItem);
     }
