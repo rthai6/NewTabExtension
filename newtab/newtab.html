@@ -8,13 +8,23 @@
   </head>
 
   <body>
-    <div id="header-bar">
-      <span id="options" class="control-button">🔧</span>
+    <div id="side-bar">
+      <div id="widget-toolbox">
+        <div id="add-widget" class="widget">+</div>
+      </div>
+      <div id="side-button">▶</div>
     </div>
-    <div id="widget-grid">
-      <iframe id="stream" class="grid-item" allowfullscreen></iframe>
-      <iframe class="grid-item" src="https://www.youtube.com/embed?listType=playlist&list=RDNTJmWsGFphQ" allowfullscreen></iframe>
-      <div id="bookmarks" class="grid-item"></div>
+
+    <div id="main">
+      <div id="header-bar">
+        <span id="options" class="control-button">🔧</span>
+      </div>
+
+      <div id="widget-grid">
+        <iframe id="stream" class="grid-item" allowfullscreen></iframe>
+        <iframe class="grid-item" src="https://www.youtube.com/embed?listType=playlist&list=RDNTJmWsGFphQ" allowfullscreen></iframe>
+        <div id="bookmarks" class="grid-item"></div>
+      </div>
     </div>
 
     <div id="options-modal" class="modal hidden">
@@ -33,12 +43,6 @@
             <option value="4">4</option>
             <option value="5">5</option>
             <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12">12</option>
           </select>
           x
           <select id="rows">
@@ -48,12 +52,6 @@
             <option value="4">4</option>
             <option value="5">5</option>
             <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12">12</option>
           </select><br>
         </div>
 

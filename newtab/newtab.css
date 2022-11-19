@@ -7,10 +7,14 @@ body {
   width: 100vw;
   height: 100vh;
   display: flex;
-  flex-direction: column;
   background-color: #1e1e1e;
   user-select: none;
   color: white;
+}
+
+#main {
+  display: flex;
+  flex-direction: column;
 }
 
 a {
@@ -24,7 +28,7 @@ a {
   top: 0;
   width: 100%;
   height: 100%;
-  padding: 1em;
+  padding: 1%;
   overflow: auto;
   background-color: rgba(0,0,0,0.5);
 }
@@ -32,8 +36,8 @@ a {
 .modal-content {
   background-color: #1e1e1e;
   margin: auto;
-  padding: 1em;
-  width: 50%;
+  padding: 1%;
+  width: 90%;
 }
 
 #header-bar {
@@ -43,9 +47,10 @@ a {
   column-gap: 1em;
   flex-direction: row-reverse;
 }
+
 #widget-grid {
-  gap: 1em;
-  padding: 1em;
+  gap: 1%;
+  padding: 1%;
   flex-grow: 1;
   overflow: auto;
   display: grid;
@@ -78,5 +83,52 @@ a {
 }
 .control-button:hover,
 .control-button:focus {
+  cursor: pointer;
+}
+
+#side-bar {
+  height: 100vh;
+  flex: none;
+  display: flex;
+  z-index: 1;
+}
+
+#widget-toolbox {
+  height: 100%;
+  flex-grow: 1;
+  background-color: black;
+  display: none;
+  flex-flow: column;
+}
+#widget-toolbox.active {
+  display: flex;
+  width: 10em;
+}
+
+.widget {
+  height: 8em;
+  width: 8em;
+  margin: 1em;
+  background-color: #252526;
+  text-align: center;
+  border: 1px solid white;
+}
+.widget:hover,
+.widget:focus {
+  cursor: pointer;
+}
+
+#side-button {
+  float: right;
+  height: 100%;
+  width: 1em;
+  background-color: black;
+  opacity: 0.5;
+  color: white;
+  display: flex;
+  align-items: center;
+}
+#side-button:hover,
+#side-button:focus {
   cursor: pointer;
 }

@@ -1,6 +1,6 @@
 "use strict";
 
-const DEFAULT_ROWS = 2;
+const DEFAULT_ROWS = 3;
 const DEFAULT_COLS = 2;
 
 const parser = new DOMParser();
@@ -161,7 +161,16 @@ const loadHeader = () => {
     }
 }
 
+const loadSidebar = () => {
+    const sideButton = document.getElementById("side-button");
+    sideButton.addEventListener("click", () => {
+        const sideBar = document.getElementById("widget-toolbox");
+        sideBar.classList.toggle("active")
+    })
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
+    loadSidebar();
     loadHeader();
     loadGrid();
     loadOptions();
