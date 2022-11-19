@@ -161,11 +161,75 @@ const loadHeader = () => {
     }
 }
 
+class Widget {
+    constructor(id = "", name = "New Widget", type = "", extra = null) {
+        this.id = id;
+        this.name = name;
+        this.type = type;
+        this.extra = extra;
+    }
+}
+
+const activateEditWidget = (widget) => {
+    const modal = document.getElementById("edit-widget-modal");
+    const currentWidget = widget;
+    const widgetName = document.getElementById("widget-name");
+    widgetName.value = currentWidget.name;
+    const widgetType = document.getElementById("widget-type");
+    widgetType.value = currentWidget.type;
+
+    const saveWidget = document.getElementById("save-widget");
+    saveWidget.onclick = () => {
+        const widgets = JSON.parse(localStorage.getItem("widgets")) ?? [];
+        const oldWidget = widgets.find(w => w.id === widget.id);
+        if (oldWidget) {
+            oldWidget.name = widgetName.value;
+            oldWidget.type = widgetType.value;
+        }
+        else {
+            widgets.push(new Widget(crypto.randomUUID(), widgetName.value, widgetType.value));
+        }
+        localStorage.setItem("widgets", JSON.stringify(widgets));
+        modal.classList.remove("active");
+
+        loadToolbox();
+    }
+    modal.classList.add("active")
+}
+
+const loadToolbox = () => {
+    const widgets = JSON.parse(localStorage.getItem("widgets")) ?? [];
+    const toolbox = document.getElementById("widget-toolbox");
+    const addWidget = createWidgetElement("+", new Widget());
+    toolbox.appendChild(addWidget);
+    for (const widget of widgets) {
+        toolbox.appendChild(createWidgetElement(widget.name, widget));
+    }
+}
+
+const createWidgetElement = (text, widget) => {
+    const element = document.createElement("div");
+    const addText = document.createTextNode(text);
+    element.appendChild(addText);
+    element.classList.add("widget");
+    element.addEventListener("click", () => {
+        activateEditWidget(widget);
+    })
+    return element;
+}
+
 const loadSidebar = () => {
     const sideButton = document.getElementById("side-button");
     sideButton.addEventListener("click", () => {
-        const sideBar = document.getElementById("widget-toolbox");
-        sideBar.classList.toggle("active")
+        const toolbox = document.getElementById("widget-toolbox");
+        toolbox.classList.toggle("active")
+    })
+
+    loadToolbox();
+
+    document.getElementById("edit-widget-modal-close").addEventListener("click", () => {
+        const modal = document.getElementById("edit-widget-modal");
+        modal.classList.remove("active");
     })
 }
 

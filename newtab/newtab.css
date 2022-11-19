@@ -37,7 +37,7 @@ a {
   background-color: #1e1e1e;
   margin: auto;
   padding: 1%;
-  width: 90%;
+  width: fit-content;
 }
 
 #header-bar {
