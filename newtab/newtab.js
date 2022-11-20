@@ -340,6 +340,25 @@ const loadToolbox = () => {
         newChildren.push(widget);
     }
 
+    toolbox.addEventListener("drop", (e) => {
+        e.preventDefault();
+        const widget = JSON.parse(e.dataTransfer.getData("active-widget"));
+
+        const active = JSON.parse(localStorage.getItem("active-widgets")) ?? {};
+        const inactive = JSON.parse(localStorage.getItem("inactive-widgets")) ?? {};
+        inactive[widget.id] = new Widget(widget.id, widget.name, widget.type, widget.extra);
+        delete active[JSON.stringify([widget.row, widget.col])];
+        localStorage.setItem("inactive-widgets", JSON.stringify(inactive));
+        localStorage.setItem("active-widgets", JSON.stringify(active));
+        loadToolbox();
+        loadEditGrid();
+    })
+    toolbox.addEventListener("dragover", (e) => {
+        if (e.dataTransfer.types.includes("active-widget")) {
+            e.preventDefault();
+        }
+    })
+
     toolbox.replaceChildren(...newChildren);
 }
 
