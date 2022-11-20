@@ -1,7 +1,7 @@
 "use strict";
 
-const DEFAULT_ROWS = 3;
-const DEFAULT_COLS = 2;
+const DEFAULT_ROWS = 2;
+const DEFAULT_COLS = 3;
 
 const parser = new DOMParser();
 const urlToDocument = async (url) => {
@@ -105,19 +105,59 @@ const loadGrid = () => {
     grid.style.gridTemplateRows = "1fr ".repeat(rows);
     grid.style.gridTemplateColumns = "1fr ".repeat(columns);
 
-    chrome.bookmarks.getTree((results) => {
-        loadBookmarks(results);
-    })
+    // chrome.bookmarks.getTree((results) => {
+    //     loadBookmarks(results);
+    // })
 
-    findFirstLivestream().then((url) => {
-        if (url) {
-            const stream = document.getElementById("stream");
-            stream.setAttribute("src", url)
+    // findFirstLivestream().then((url) => {
+    //     if (url) {
+    //         const stream = document.getElementById("stream");
+    //         stream.setAttribute("src", url)
+    //     }
+    //     else {
+    //         // todo: handle no livestream
+    //     }
+    // });
+}
+
+const loadEditGrid = () => {
+    const rows = localStorage.getItem("rows") ?? DEFAULT_ROWS;
+    const columns = localStorage.getItem("columns") ?? DEFAULT_COLS;
+    const grid = document.getElementById("widget-grid");
+    const activeWidgets = JSON.parse(localStorage.getItem("active-widgets")) ?? {};
+
+    const children = [];
+    for (let i = 0; i < rows * columns; i ++) {
+        const row = Math.floor(i / columns) + 1;
+        const col = (i % columns) + 1;
+        const div = document.createElement("div");
+        div.classList.add("grid-item");
+        const activeWidget = activeWidgets[JSON.stringify([row, col])];
+        if (!activeWidget) {
+            div.addEventListener("drop", (e) => {
+                e.preventDefault();
+                const widget = JSON.parse(e.dataTransfer.getData("widget"));
+                const inactive = JSON.parse(localStorage.getItem("inactive-widgets")) ?? {};
+                const active = JSON.parse(localStorage.getItem("active-widgets")) ?? {};
+                delete inactive[widget.id];
+                active[JSON.stringify([row, col])] = new ActiveWidget(widget);
+                localStorage.setItem("inactive-widgets", JSON.stringify(inactive));
+                localStorage.setItem("active-widgets", JSON.stringify(active));
+                loadToolbox();
+                loadEditGrid();
+            })
+            div.addEventListener("dragover", (e) => {
+                e.preventDefault();
+            })
         }
         else {
-            // todo: handle no livestream
+            div.classList.add("occupied-slot");
+            const text = document.createTextNode(activeWidget.name);
+            div.appendChild(text);
         }
-    });
+        children.push(div);
+    }
+    grid.replaceChildren(...children);
 }
 
 const initializeElement = (id, defaultValue) => {
@@ -169,6 +209,13 @@ class Widget {
     }
 }
 
+class ActiveWidget extends Widget {
+    constructor(...widget) {
+        super(...widget);
+        // todo: size
+    }
+}
+
 const loadExtraOptions = (type, extra) => {
     const extraOptions = document.getElementById("extra-options");
     const newOptions = [];
@@ -190,19 +237,6 @@ const loadExtraOptions = (type, extra) => {
         newOptions.push(textArea);
     }
     else if (type === "youtube") {
-        const label = document.createElement("label");
-        label.setAttribute("for", "stream-list");
-        const labelText = document.createTextNode("Stream List:");
-        label.appendChild(labelText);
-        newOptions.push(label);
-        const br = document.createElement("br");
-        newOptions.push(br);
-        const textArea = document.createElement("textarea");
-        textArea.setAttribute("id", "stream-list");
-        textArea.setAttribute("rows", 10);
-        textArea.setAttribute("cols", 60);
-        if (extra) textArea.value = extra;
-        newOptions.push(textArea);
     }
     extraOptions.replaceChildren(...newOptions);
 }
@@ -227,13 +261,17 @@ const activateEditWidget = (widget) => {
     widgetName.value = currentWidget.name;
     const widgetType = document.getElementById("widget-type");
     widgetType.value = currentWidget.type;
+    widgetType.addEventListener("change", (e) => {
+        loadExtraOptions(e.currentTarget.value, null);
+    })
 
     loadExtraOptions(widget.type, widget.extra);
 
     const saveWidget = document.getElementById("save-widget");
     saveWidget.onclick = () => {
+        // todo: validate
         const extra = getExtraOptions(widgetType.value);
-        const widgets = JSON.parse(localStorage.getItem("widgets")) ?? {};
+        const widgets = JSON.parse(localStorage.getItem("inactive-widgets")) ?? {};
         const oldWidget = widgets[widget.id];
         if (oldWidget) {
             oldWidget.name = widgetName.value;
@@ -244,7 +282,7 @@ const activateEditWidget = (widget) => {
             const id = crypto.randomUUID();
             widgets[id] = new Widget(id, widgetName.value, widgetType.value, extra);
         }
-        localStorage.setItem("widgets", JSON.stringify(widgets));
+        localStorage.setItem("inactive-widgets", JSON.stringify(widgets));
         modal.classList.remove("active");
 
         loadToolbox();
@@ -255,9 +293,9 @@ const activateEditWidget = (widget) => {
         deleteWidget.classList.remove("hidden");
         deleteWidget.onclick = () => {
             if (confirm("Are you sure?")) {
-                const widgets = JSON.parse(localStorage.getItem("widgets")) ?? {};
+                const widgets = JSON.parse(localStorage.getItem("inactive-widgets")) ?? {};
                 delete widgets[widget.id];
-                localStorage.setItem("widgets", JSON.stringify(widgets));
+                localStorage.setItem("inactive-widgets", JSON.stringify(widgets));
                 modal.classList.remove("active");
 
                 loadToolbox();
@@ -273,12 +311,18 @@ const activateEditWidget = (widget) => {
 const loadToolbox = () => {
     const toolbox = document.getElementById("widget-toolbox");
 
-    const widgets = JSON.parse(localStorage.getItem("widgets")) ?? {};
+    const widgets = JSON.parse(localStorage.getItem("inactive-widgets")) ?? {};
 
-    const addWidget = createWidgetElement("+", new Widget());
+    const addWidget = createWidgetElement("Create Widget", new Widget());
     const newChildren = [addWidget];
     for (const id of Object.keys(widgets)) {
-        newChildren.push(createWidgetElement( widgets[id].name, widgets[id]));
+        const widget = createWidgetElement(widgets[id].name, widgets[id]);
+        widget.setAttribute("draggable", true);
+
+        widget.addEventListener("dragstart", (e) => {
+            e.dataTransfer.setData("widget", JSON.stringify(widgets[id]));
+        });
+        newChildren.push(widget);
     }
 
     toolbox.replaceChildren(...newChildren);
@@ -300,6 +344,12 @@ const loadSidebar = () => {
     sideButton.addEventListener("click", () => {
         const toolbox = document.getElementById("widget-toolbox");
         toolbox.classList.toggle("active")
+        if (toolbox.classList.contains("active")) {
+            loadEditGrid();
+        }
+        else {
+            // todo: regular grid
+        }
     })
 
     loadToolbox();
