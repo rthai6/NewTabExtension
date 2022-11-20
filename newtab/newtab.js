@@ -46,7 +46,6 @@ const findFirstLivestream = async () => {
 }
 
 const loadBookmarks = (root) => {
-    console.log(root);
     const bookmarks = document.getElementById("bookmarks");
     const rootList = document.createElement("ul");
     rootList.classList.add("bookmark-list");
@@ -139,11 +138,11 @@ const loadOptions = () => {
         modal.classList.remove("active");
     })
 
-    // todo: parallel promises
+    // todo: parallel promises?
     initializeElement("header-links-list", "");
     initializeElement("rows", DEFAULT_ROWS);
     initializeElement("columns", DEFAULT_COLS);
-    initializeElement("stream-list", "");
+    // initializeElement("stream-list", "");
 }
 
 const loadHeader = () => {
@@ -170,6 +169,57 @@ class Widget {
     }
 }
 
+const loadExtraOptions = (type, extra) => {
+    const extraOptions = document.getElementById("extra-options");
+    const newOptions = [];
+    if (type === "") {}
+    else if (type === "bookmarks") {}
+    else if (type === "streams") {
+        const label = document.createElement("label");
+        label.setAttribute("for", "stream-list");
+        const labelText = document.createTextNode("Stream List:");
+        label.appendChild(labelText);
+        newOptions.push(label);
+        const br = document.createElement("br");
+        newOptions.push(br);
+        const textArea = document.createElement("textarea");
+        textArea.setAttribute("id", "stream-list");
+        textArea.setAttribute("rows", 10);
+        textArea.setAttribute("cols", 60);
+        if (extra) textArea.value = extra;
+        newOptions.push(textArea);
+    }
+    else if (type === "youtube") {
+        const label = document.createElement("label");
+        label.setAttribute("for", "stream-list");
+        const labelText = document.createTextNode("Stream List:");
+        label.appendChild(labelText);
+        newOptions.push(label);
+        const br = document.createElement("br");
+        newOptions.push(br);
+        const textArea = document.createElement("textarea");
+        textArea.setAttribute("id", "stream-list");
+        textArea.setAttribute("rows", 10);
+        textArea.setAttribute("cols", 60);
+        if (extra) textArea.value = extra;
+        newOptions.push(textArea);
+    }
+    extraOptions.replaceChildren(...newOptions);
+}
+
+const getExtraOptions = (type) => {
+    if (type === "") {}
+    else if (type === "bookmarks") {}
+    else if (type === "streams") {
+        const textArea = document.getElementById("stream-list");
+        return textArea.value;
+    }
+    else if (type === "youtube") {
+
+    }
+    return;
+}
+
 const activateEditWidget = (widget) => {
     const modal = document.getElementById("edit-widget-modal");
     const currentWidget = widget;
@@ -178,17 +228,21 @@ const activateEditWidget = (widget) => {
     const widgetType = document.getElementById("widget-type");
     widgetType.value = currentWidget.type;
 
+    loadExtraOptions(widget.type, widget.extra);
+
     const saveWidget = document.getElementById("save-widget");
     saveWidget.onclick = () => {
+        const extra = getExtraOptions(widgetType.value);
         const widgets = JSON.parse(localStorage.getItem("widgets")) ?? {};
         const oldWidget = widgets[widget.id];
         if (oldWidget) {
             oldWidget.name = widgetName.value;
             oldWidget.type = widgetType.value;
+            oldWidget.extra = extra;
         }
         else {
             const id = crypto.randomUUID();
-            widgets[id] = new Widget(id, widgetName.value, widgetType.value);
+            widgets[id] = new Widget(id, widgetName.value, widgetType.value, extra);
         }
         localStorage.setItem("widgets", JSON.stringify(widgets));
         modal.classList.remove("active");
@@ -197,15 +251,21 @@ const activateEditWidget = (widget) => {
     }
 
     const deleteWidget = document.getElementById("delete-widget");
-    deleteWidget.onclick = () => {
-        if (confirm("Are you sure you want to delete this widget?")) {
-            const widgets = JSON.parse(localStorage.getItem("widgets")) ?? {};
-            delete widgets[widget.id];
-            localStorage.setItem("widgets", JSON.stringify(widgets));
-            modal.classList.remove("active");
+    if (widget.id) {
+        deleteWidget.classList.remove("hidden");
+        deleteWidget.onclick = () => {
+            if (confirm("Are you sure?")) {
+                const widgets = JSON.parse(localStorage.getItem("widgets")) ?? {};
+                delete widgets[widget.id];
+                localStorage.setItem("widgets", JSON.stringify(widgets));
+                modal.classList.remove("active");
 
-            loadToolbox();
+                loadToolbox();
+            }
         }
+    }
+    else {
+        deleteWidget.classList.add("hidden");
     }
     modal.classList.add("active")
 }
