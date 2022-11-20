@@ -198,13 +198,17 @@ const activateEditWidget = (widget) => {
 }
 
 const loadToolbox = () => {
-    const widgets = JSON.parse(localStorage.getItem("widgets")) ?? [];
     const toolbox = document.getElementById("widget-toolbox");
+
+    const widgets = JSON.parse(localStorage.getItem("widgets")) ?? [];
+
     const addWidget = createWidgetElement("+", new Widget());
-    toolbox.appendChild(addWidget);
+    const newChildren = [addWidget];
     for (const widget of widgets) {
-        toolbox.appendChild(createWidgetElement(widget.name, widget));
+        newChildren.push(createWidgetElement(widget.name, widget));
     }
+
+    toolbox.replaceChildren(...newChildren);
 }
 
 const createWidgetElement = (text, widget) => {
