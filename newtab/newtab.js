@@ -28,8 +28,7 @@ const getLivestream = async (channelUrl) => {
     return canonicalURL;
 }
 
-const findFirstLivestream = async () => {
-    const streamList = localStorage.getItem("stream-list");
+const findFirstLivestream = async (streamList) => {
     if (streamList) {
         const urls = streamList.split(/\r?\n|\r|\n/g);
         if (urls.length) {
@@ -45,12 +44,9 @@ const findFirstLivestream = async () => {
     }
 }
 
-const loadBookmarks = (root) => {
-    const bookmarks = document.getElementById("bookmarks");
+const createBookmarks = (root) => {
     const rootList = document.createElement("ul");
     rootList.classList.add("bookmark-list");
-    bookmarks.appendChild(rootList);
-    // use object because hashset isn't stringifiable
     const openBookmarks = JSON.parse(localStorage.getItem("open-bookmarks")) ?? {};
 
     const queue = [[rootList, root[0]]];
@@ -96,6 +92,7 @@ const loadBookmarks = (root) => {
         }
         parent.appendChild(rootItem);
     }
+    return rootList;
 }
 
 const loadGrid = () => {
@@ -105,19 +102,42 @@ const loadGrid = () => {
     grid.style.gridTemplateRows = "1fr ".repeat(rows);
     grid.style.gridTemplateColumns = "1fr ".repeat(columns);
 
-    // chrome.bookmarks.getTree((results) => {
-    //     loadBookmarks(results);
-    // })
+    const activeWidgets = JSON.parse(localStorage.getItem("active-widgets")) ?? {};
 
-    // findFirstLivestream().then((url) => {
-    //     if (url) {
-    //         const stream = document.getElementById("stream");
-    //         stream.setAttribute("src", url)
-    //     }
-    //     else {
-    //         // todo: handle no livestream
-    //     }
-    // });
+    const children = [];
+    for (let i = 0; i < rows * columns; i ++) {
+        const row = Math.floor(i / columns) + 1;
+        const col = (i % columns) + 1;
+        const activeWidget = activeWidgets[JSON.stringify([row, col])];
+        if (activeWidget) {
+            const widget = createWidget(activeWidget.type, activeWidget.extra);
+            if (widget) children.push(widget);
+        }
+    }
+    grid.replaceChildren(...children);
+}
+
+const createWidget = (type, extra) => {
+    let element = undefined;
+    if (type === "") {}
+    else if (type === "bookmarks") {
+        element = document.createElement("div");
+        element.classList.add("grid-item");
+        chrome.bookmarks.getTree((results) => {
+            const bookmarks = createBookmarks(results);
+            element.appendChild(bookmarks);
+        })
+    }
+    else if (type === "streams") {
+        element = document.createElement("iframe");
+        element.classList.add("grid-item");
+        findFirstLivestream(extra).then((url) => {
+            if (url) element.setAttribute("src", url);
+        })
+    }
+    else if (type === "youtube") {
+    }
+    return element;
 }
 
 const loadEditGrid = () => {
@@ -382,7 +402,7 @@ const loadSidebar = () => {
             loadEditGrid();
         }
         else {
-            // todo: regular grid
+            loadGrid();
         }
     })
 
