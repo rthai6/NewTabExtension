@@ -136,24 +136,37 @@ const loadEditGrid = () => {
         if (!activeWidget) {
             div.addEventListener("drop", (e) => {
                 e.preventDefault();
-                const widget = JSON.parse(e.dataTransfer.getData("widget"));
-                const inactive = JSON.parse(localStorage.getItem("inactive-widgets")) ?? {};
+                let widget = undefined;
                 const active = JSON.parse(localStorage.getItem("active-widgets")) ?? {};
-                delete inactive[widget.id];
-                active[JSON.stringify([row, col])] = new ActiveWidget(widget);
-                localStorage.setItem("inactive-widgets", JSON.stringify(inactive));
+                if (e.dataTransfer.types.includes("widget")) {
+                    const inactive = JSON.parse(localStorage.getItem("inactive-widgets")) ?? {};
+                    widget = JSON.parse(e.dataTransfer.getData("widget"));
+                    delete inactive[widget.id];
+                    localStorage.setItem("inactive-widgets", JSON.stringify(inactive));
+                }
+                if (e.dataTransfer.types.includes("active-widget")) {
+                    widget = JSON.parse(e.dataTransfer.getData("active-widget"));
+                    delete active[JSON.stringify([widget.row, widget.col])];
+                }
+                active[JSON.stringify([row, col])] = new ActiveWidget(widget, row, col);
                 localStorage.setItem("active-widgets", JSON.stringify(active));
                 loadToolbox();
                 loadEditGrid();
             })
             div.addEventListener("dragover", (e) => {
-                e.preventDefault();
+                if (e.dataTransfer.types.includes("widget") || e.dataTransfer.types.includes("active-widget")) {
+                    e.preventDefault();
+                }
             })
         }
         else {
             div.classList.add("occupied-slot");
             const text = document.createTextNode(activeWidget.name);
             div.appendChild(text);
+            div.setAttribute("draggable", true);
+            div.addEventListener("dragstart", (e) => {
+                e.dataTransfer.setData("active-widget", JSON.stringify(activeWidget));
+            });
         }
         children.push(div);
     }
@@ -210,8 +223,10 @@ class Widget {
 }
 
 class ActiveWidget extends Widget {
-    constructor(widget) {
+    constructor(widget, row, col) {
         super(widget.id, widget.name, widget.type, widget.extra);
+        this.row = row;
+        this.col = col;
         // todo: size
     }
 }
