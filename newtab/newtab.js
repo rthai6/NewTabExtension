@@ -111,7 +111,11 @@ const loadGrid = () => {
         const activeWidget = activeWidgets[JSON.stringify([row, col])];
         if (activeWidget) {
             const widget = createWidget(activeWidget.type, activeWidget.extra);
-            if (widget) children.push(widget);
+            if (widget) {
+                children.push(widget);
+                widget.style.gridRow = row;
+                widget.style.gridColumn = col;
+            }
         }
     }
     grid.replaceChildren(...children);
@@ -183,6 +187,12 @@ const loadEditGrid = () => {
             div.classList.add("occupied-slot");
             const text = document.createTextNode(activeWidget.name);
             div.appendChild(text);
+
+            // todo: handle delete
+            // div.addEventListener("click", () => {
+            //     activateEditWidget(activeWidget)
+            // })
+
             div.setAttribute("draggable", true);
             div.addEventListener("dragstart", (e) => {
                 e.dataTransfer.setData("active-widget", JSON.stringify(activeWidget));
@@ -352,8 +362,8 @@ const loadToolbox = () => {
     const newChildren = [addWidget];
     for (const id of Object.keys(widgets)) {
         const widget = createWidgetElement(widgets[id].name, widgets[id]);
-        widget.setAttribute("draggable", true);
 
+        widget.setAttribute("draggable", true);
         widget.addEventListener("dragstart", (e) => {
             e.dataTransfer.setData("widget", JSON.stringify(widgets[id]));
         });
