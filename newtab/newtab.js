@@ -210,8 +210,8 @@ class Widget {
 }
 
 class ActiveWidget extends Widget {
-    constructor(...widget) {
-        super(...widget);
+    constructor(widget) {
+        super(widget.id, widget.name, widget.type, widget.extra);
         // todo: size
     }
 }
