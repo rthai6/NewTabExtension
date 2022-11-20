@@ -180,19 +180,32 @@ const activateEditWidget = (widget) => {
 
     const saveWidget = document.getElementById("save-widget");
     saveWidget.onclick = () => {
-        const widgets = JSON.parse(localStorage.getItem("widgets")) ?? [];
-        const oldWidget = widgets.find(w => w.id === widget.id);
+        const widgets = JSON.parse(localStorage.getItem("widgets")) ?? {};
+        const oldWidget = widgets[widget.id];
         if (oldWidget) {
             oldWidget.name = widgetName.value;
             oldWidget.type = widgetType.value;
         }
         else {
-            widgets.push(new Widget(crypto.randomUUID(), widgetName.value, widgetType.value));
+            const id = crypto.randomUUID();
+            widgets[id] = new Widget(id, widgetName.value, widgetType.value);
         }
         localStorage.setItem("widgets", JSON.stringify(widgets));
         modal.classList.remove("active");
 
         loadToolbox();
+    }
+
+    const deleteWidget = document.getElementById("delete-widget");
+    deleteWidget.onclick = () => {
+        if (confirm("Are you sure you want to delete this widget?")) {
+            const widgets = JSON.parse(localStorage.getItem("widgets")) ?? {};
+            delete widgets[widget.id];
+            localStorage.setItem("widgets", JSON.stringify(widgets));
+            modal.classList.remove("active");
+
+            loadToolbox();
+        }
     }
     modal.classList.add("active")
 }
@@ -200,12 +213,12 @@ const activateEditWidget = (widget) => {
 const loadToolbox = () => {
     const toolbox = document.getElementById("widget-toolbox");
 
-    const widgets = JSON.parse(localStorage.getItem("widgets")) ?? [];
+    const widgets = JSON.parse(localStorage.getItem("widgets")) ?? {};
 
     const addWidget = createWidgetElement("+", new Widget());
     const newChildren = [addWidget];
-    for (const widget of widgets) {
-        newChildren.push(createWidgetElement(widget.name, widget));
+    for (const id of Object.keys(widgets)) {
+        newChildren.push(createWidgetElement( widgets[id].name, widgets[id]));
     }
 
     toolbox.replaceChildren(...newChildren);
