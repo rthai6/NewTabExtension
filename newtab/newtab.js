@@ -193,10 +193,20 @@ const loadEditGrid = () => {
             const text = document.createTextNode(activeWidget.name);
             div.appendChild(text);
 
-            // todo: handle delete
-            // div.addEventListener("click", () => {
-            //     activateEditWidget(activeWidget)
-            // })
+            div.addEventListener("click", () => {
+                popupEditWidget(activeWidget, (result) => {
+                    const widgets = JSON.parse(localStorage.getItem("active-widgets")) ?? {};
+                    const index = JSON.stringify([result.widget.row, result.widget.col]);
+                    if (!result.deleted) {
+                        widgets[index] = result.widget;
+                    }
+                    else {
+                        delete widgets[index];
+                    }
+                    localStorage.setItem("active-widgets", JSON.stringify(widgets));
+                    loadEditGrid();
+                });
+            })
 
             div.setAttribute("draggable", true);
             div.addEventListener("dragstart", (e) => {
