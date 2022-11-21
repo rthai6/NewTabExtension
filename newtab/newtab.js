@@ -343,7 +343,7 @@ const popupEditWidget = (widget, callback) => {
     const typeInput = document.getElementById("widget-type");
     nameInput.value = widget.name;
     typeInput.value = widget.type;
-    typeInput.onChange = (e) => {
+    typeInput.onchange = (e) => {
         loadExtraOptions(e.currentTarget.value, null);
     }
     loadExtraOptions(widget.type, widget.extra);
@@ -351,21 +351,11 @@ const popupEditWidget = (widget, callback) => {
     const saveWidget = document.getElementById("save-widget");
     saveWidget.onclick = () => {
         const extra = getExtraOptions(typeInput.value);
-        const widgets = JSON.parse(localStorage.getItem("inactive-widgets")) ?? {};
-        const oldWidget = widgets[widget.id];
-        if (oldWidget) {
-            oldWidget.name = nameInput.value;
-            oldWidget.type = typeInput.value;
-            oldWidget.extra = extra;
-        }
-        else {
-            const id = crypto.randomUUID();
-            widgets[id] = new Widget(id, nameInput.value, typeInput.value, extra);
-        }
-        localStorage.setItem("inactive-widgets", JSON.stringify(widgets));
+        widget.name = nameInput.value;
+        widget.type = typeInput.value;
+        widget.extra = extra;
         modal.classList.remove("active");
-
-        loadToolbox();
+        callback({"widget": widget, "deleted": false});
     }
 
     const deleteWidget = document.getElementById("delete-widget");
@@ -373,12 +363,8 @@ const popupEditWidget = (widget, callback) => {
         deleteWidget.classList.remove("hidden");
         deleteWidget.onclick = () => {
             if (confirm("Are you sure?")) {
-                const widgets = JSON.parse(localStorage.getItem("inactive-widgets")) ?? {};
-                delete widgets[widget.id];
-                localStorage.setItem("inactive-widgets", JSON.stringify(widgets));
                 modal.classList.remove("active");
-
-                loadToolbox();
+                callback({"widget": widget, "deleted": true});
             }
         }
     }
@@ -435,7 +421,25 @@ const createWidgetElement = (text, widget) => {
     element.appendChild(addText);
     element.classList.add("widget");
     element.addEventListener("click", () => {
-        popupEditWidget(widget);
+        popupEditWidget(widget, (result) => {
+            const widgets = JSON.parse(localStorage.getItem("inactive-widgets")) ?? {};
+            if (!result.deleted) {
+                const oldWidget = widgets[result.widget.id];
+                if (oldWidget) {
+                    widgets[result.widget.id] = result.widget;
+                }
+                else {
+                    const id = crypto.randomUUID();
+                    result.widget.id = id;
+                    widgets[id] = result.widget;
+                }
+            }
+            else {
+                delete widgets[result.widget.id];
+            }
+            localStorage.setItem("inactive-widgets", JSON.stringify(widgets));
+            loadToolbox();
+        });
     })
     return element;
 }
