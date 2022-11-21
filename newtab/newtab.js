@@ -336,33 +336,31 @@ const getExtraOptions = (type) => {
     return;
 }
 
-const activateEditWidget = (widget) => {
+const popupEditWidget = (widget, callback) => {
     const modal = document.getElementById("edit-widget-modal");
-    const currentWidget = widget;
-    const widgetName = document.getElementById("widget-name");
-    widgetName.value = currentWidget.name;
-    const widgetType = document.getElementById("widget-type");
-    widgetType.value = currentWidget.type;
-    widgetType.addEventListener("change", (e) => {
-        loadExtraOptions(e.currentTarget.value, null);
-    })
 
+    const nameInput = document.getElementById("widget-name");
+    const typeInput = document.getElementById("widget-type");
+    nameInput.value = widget.name;
+    typeInput.value = widget.type;
+    typeInput.onChange = (e) => {
+        loadExtraOptions(e.currentTarget.value, null);
+    }
     loadExtraOptions(widget.type, widget.extra);
 
     const saveWidget = document.getElementById("save-widget");
     saveWidget.onclick = () => {
-        // todo: validate
-        const extra = getExtraOptions(widgetType.value);
+        const extra = getExtraOptions(typeInput.value);
         const widgets = JSON.parse(localStorage.getItem("inactive-widgets")) ?? {};
         const oldWidget = widgets[widget.id];
         if (oldWidget) {
-            oldWidget.name = widgetName.value;
-            oldWidget.type = widgetType.value;
+            oldWidget.name = nameInput.value;
+            oldWidget.type = typeInput.value;
             oldWidget.extra = extra;
         }
         else {
             const id = crypto.randomUUID();
-            widgets[id] = new Widget(id, widgetName.value, widgetType.value, extra);
+            widgets[id] = new Widget(id, nameInput.value, typeInput.value, extra);
         }
         localStorage.setItem("inactive-widgets", JSON.stringify(widgets));
         modal.classList.remove("active");
@@ -387,6 +385,7 @@ const activateEditWidget = (widget) => {
     else {
         deleteWidget.classList.add("hidden");
     }
+
     modal.classList.add("active")
 }
 
@@ -395,6 +394,7 @@ const loadToolbox = () => {
 
     const widgets = JSON.parse(localStorage.getItem("inactive-widgets")) ?? {};
 
+    // todo: handle out of bounds
     const addWidget = createWidgetElement("Create Widget", new Widget());
     const newChildren = [addWidget];
     for (const id of Object.keys(widgets)) {
@@ -435,7 +435,7 @@ const createWidgetElement = (text, widget) => {
     element.appendChild(addText);
     element.classList.add("widget");
     element.addEventListener("click", () => {
-        activateEditWidget(widget);
+        popupEditWidget(widget);
     })
     return element;
 }
