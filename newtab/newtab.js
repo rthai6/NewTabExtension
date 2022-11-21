@@ -134,12 +134,17 @@ const createWidget = (type, extra) => {
     }
     else if (type === "streams") {
         element = document.createElement("iframe");
+        element.setAttribute("allowfullscreen", 1);
         element.classList.add("grid-item");
         findFirstLivestream(extra).then((url) => {
             if (url) element.setAttribute("src", url);
         })
     }
     else if (type === "youtube") {
+        element = document.createElement("iframe");
+        element.setAttribute("allowfullscreen", 1);
+        element.classList.add("grid-item");
+        element.setAttribute("src", `https://www.youtube.com/embed${extra.type === "playlist" ? "?listType=playlist&list=" : "/"}${extra.id}`);
     }
     return element;
 }
@@ -269,11 +274,10 @@ const loadExtraOptions = (type, extra) => {
     else if (type === "streams") {
         const label = document.createElement("label");
         label.setAttribute("for", "stream-list");
-        const labelText = document.createTextNode("Stream List:");
+        const labelText = document.createTextNode("Channels:");
         label.appendChild(labelText);
         newOptions.push(label);
-        const br = document.createElement("br");
-        newOptions.push(br);
+        newOptions.push(document.createElement("br"));
         const textArea = document.createElement("textarea");
         textArea.setAttribute("id", "stream-list");
         textArea.setAttribute("rows", 10);
@@ -282,6 +286,37 @@ const loadExtraOptions = (type, extra) => {
         newOptions.push(textArea);
     }
     else if (type === "youtube") {
+        const typeLabel = document.createElement("label");
+        typeLabel.setAttribute("for", "youtube-type");
+        const typelabelText = document.createTextNode("Video Type:");
+        typeLabel.appendChild(typelabelText);
+        newOptions.push(typeLabel);
+        newOptions.push(document.createElement("br"));
+        const select= document.createElement("select");
+        select.setAttribute("id", "youtube-type");
+        const video = document.createElement("option");
+        video.setAttribute("value", "video");
+        const videoText = document.createTextNode("Video");
+        video.appendChild(videoText);
+        select.appendChild(video);
+        const playlist = document.createElement("option");
+        playlist.setAttribute("value", "playlist");
+        const playlistText = document.createTextNode("Playlist");
+        playlist.appendChild(playlistText);
+        select.append(playlist);
+        if (extra) select.value = extra.type;
+        newOptions.push(select);
+        newOptions.push(document.createElement("br"));
+        const idLabel = document.createElement("label");
+        idLabel.setAttribute("for", "youtube-id");
+        const idLabelText = document.createTextNode("ID:");
+        idLabel.appendChild(idLabelText);
+        newOptions.push(idLabel);
+        newOptions.push(document.createElement("br"));
+        const idInput = document.createElement("input");
+        idInput.setAttribute("id", "youtube-id");
+        if (extra) idInput.value = extra.id;
+        newOptions.push(idInput);
     }
     extraOptions.replaceChildren(...newOptions);
 }
@@ -290,11 +325,13 @@ const getExtraOptions = (type) => {
     if (type === "") {}
     else if (type === "bookmarks") {}
     else if (type === "streams") {
-        const textArea = document.getElementById("stream-list");
-        return textArea.value;
+        const list = document.getElementById("stream-list");
+        return list.value;
     }
     else if (type === "youtube") {
-
+        const type = document.getElementById("youtube-type");
+        const id = document.getElementById("youtube-id");
+        return {"type": type.value, "id": id.value};
     }
     return;
 }
