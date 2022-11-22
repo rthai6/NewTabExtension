@@ -3,6 +3,11 @@
 const DEFAULT_ROWS = 2;
 const DEFAULT_COLS = 3;
 
+const WIDGET_TYPE_NONE = ""
+const WIDGET_TYPE_BOOKMARKS = "bookmarks"
+const WIDGET_TYPE_YOUTUBE = "youtube"
+const WIDGET_TYPE_YOUTUBE_LIVESTREAM = "stream"
+
 const parser = new DOMParser();
 const urlToDocument = async (url) => {
     const response = await fetch(url);
@@ -123,8 +128,8 @@ const loadGrid = () => {
 
 const createWidget = (type, extra) => {
     let element = undefined;
-    if (type === "") {}
-    else if (type === "bookmarks") {
+    if (type === WIDGET_TYPE_NONE) {}
+    else if (type === WIDGET_TYPE_BOOKMARKS) {
         element = document.createElement("div");
         element.classList.add("grid-item");
         chrome.bookmarks.getTree((results) => {
@@ -132,7 +137,7 @@ const createWidget = (type, extra) => {
             element.appendChild(bookmarks);
         })
     }
-    else if (type === "streams") {
+    else if (type === WIDGET_TYPE_YOUTUBE_LIVESTREAM) {
         element = document.createElement("iframe");
         element.setAttribute("allowfullscreen", 1);
         element.classList.add("grid-item");
@@ -140,7 +145,7 @@ const createWidget = (type, extra) => {
             if (url) element.setAttribute("src", url);
         })
     }
-    else if (type === "youtube") {
+    else if (type === WIDGET_TYPE_YOUTUBE) {
         element = document.createElement("iframe");
         element.setAttribute("allowfullscreen", 1);
         element.classList.add("grid-item");
@@ -279,9 +284,9 @@ class ActiveWidget extends Widget {
 const loadExtraOptions = (type, extra) => {
     const extraOptions = document.getElementById("extra-options");
     const newOptions = [];
-    if (type === "") {}
-    else if (type === "bookmarks") {}
-    else if (type === "streams") {
+    if (type === WIDGET_TYPE_NONE) {}
+    else if (type === WIDGET_TYPE_BOOKMARKS) {}
+    else if (type === WIDGET_TYPE_YOUTUBE_LIVESTREAM) {
         const label = document.createElement("label");
         label.setAttribute("for", "stream-list");
         const labelText = document.createTextNode("Channels:");
@@ -295,7 +300,7 @@ const loadExtraOptions = (type, extra) => {
         if (extra) textArea.value = extra;
         newOptions.push(textArea);
     }
-    else if (type === "youtube") {
+    else if (type === WIDGET_TYPE_YOUTUBE) {
         const typeLabel = document.createElement("label");
         typeLabel.setAttribute("for", "youtube-type");
         const typelabelText = document.createTextNode("Video Type:");
@@ -332,13 +337,13 @@ const loadExtraOptions = (type, extra) => {
 }
 
 const getExtraOptions = (type) => {
-    if (type === "") {}
-    else if (type === "bookmarks") {}
-    else if (type === "streams") {
+    if (type === WIDGET_TYPE_NONE) {}
+    else if (type === WIDGET_TYPE_BOOKMARKS) {}
+    else if (type === WIDGET_TYPE_YOUTUBE_LIVESTREAM) {
         const list = document.getElementById("stream-list");
         return list.value;
     }
-    else if (type === "youtube") {
+    else if (type === WIDGET_TYPE_YOUTUBE) {
         const type = document.getElementById("youtube-type");
         const id = document.getElementById("youtube-id");
         return {"type": type.value, "id": id.value};
