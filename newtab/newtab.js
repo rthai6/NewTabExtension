@@ -1,5 +1,6 @@
 "use strict";
 
+//#region constants
 const DEFAULT_ROWS = 2;
 const DEFAULT_COLS = 3;
 
@@ -7,11 +8,20 @@ const WIDGET_TYPE_NONE = ""
 const WIDGET_TYPE_BOOKMARKS = "bookmarks"
 const WIDGET_TYPE_YOUTUBE = "youtube"
 const WIDGET_TYPE_YOUTUBE_LIVESTREAM = "stream"
+//#endregion
 
-const parser = new DOMParser();
+//#region helpers
+const getLocalStorage = (key, defaultValue) => JSON.parse(localStorage.getItem(key)) ?? defaultValue;
+const setLocalStorage = (key, value) => localStorage.setItem(key, typeof value === "string" ? value: JSON.stringify(value));
+const addClass = (element, ...classes) => classes.map((c) => { element.setAttribute("class", c)})
+//#endregion
+
+//#region livestreams
+let parser = undefined;
 const urlToDocument = async (url) => {
     const response = await fetch(url);
     const text = await response.text();
+    if (!parser) parser = new DOMParser();
     return parser.parseFromString(text, "text/html");
 }
 
@@ -19,11 +29,13 @@ const urlToDocument = async (url) => {
 const getLivestream = async (channelUrl) => {
     const live = await urlToDocument(`${channelUrl}/live`);
 
+    // live url gives redirect to livestream if there is one
     const canonicalURLTag = live.querySelector('link[rel=canonical]')
     const canonicalURL = canonicalURLTag.getAttribute('href')
     const isStreaming = canonicalURL.includes('/watch?v=')
     if (!isStreaming) return;
 
+    // it's possible that the livestream hasn't started yet
     const redirect = await urlToDocument(canonicalURL);
     const startDateString = redirect.querySelector("meta[itemprop=startDate]")?.getAttribute("content");
     const startDate = new Date(startDateString);
@@ -33,73 +45,78 @@ const getLivestream = async (channelUrl) => {
     return canonicalURL;
 }
 
-const findFirstLivestream = async (streamList) => {
-    if (streamList) {
-        const urls = streamList.split(/\r?\n|\r|\n/g);
-        if (urls.length) {
-            for (const channel of urls) {
-                const liveUrl = await getLivestream(channel);
-                if (liveUrl) {
-                    const params = new URLSearchParams(new URL(liveUrl).search);
-                    const videoId = params.get("v");
-                    return `https://www.youtube.com/embed/${videoId}`;
-                }
-            }
+const getFirstLivestream = async (streamList) => {
+    if (!streamList) return;
+
+    const urls = streamList.split(/\r?\n|\r|\n/g);
+    if (!urls.length) return;
+
+    const liveUrls = await Promise.all(urls.map((url) => getLivestream(url)));
+    for (const liveUrl of liveUrls) {
+        if (liveUrl) {
+            const params = new URLSearchParams(new URL(liveUrl).search);
+            const videoId = params.get("v");
+            return `https://www.youtube.com/embed/${videoId}`;
         }
     }
+
+    // Sequential, in case youtube rate limits
+
+    // for (const channel of urls) {
+    //     const liveUrl = await getLivestream(channel);
+    //     if (liveUrl) {
+    //         const params = new URLSearchParams(new URL(liveUrl).search);
+    //         const videoId = params.get("v");
+    //         return `https://www.youtube.com/embed/${videoId}`;
+    //     }
+    // }
 }
+//#endregion
 
+//#region bookmarks
 const createBookmarks = (root) => {
+    const openBookmarks = getLocalStorage("open-bookmarks", {});
+
     const rootList = document.createElement("ul");
-    rootList.classList.add("bookmark-list");
-    const openBookmarks = JSON.parse(localStorage.getItem("open-bookmarks")) ?? {};
+    rootList.addEventListener("click" , (e) => {
+        if (e.target.tagName != "SPAN") return;
 
-    const queue = [[rootList, root[0]]];
-    while (queue.length) {
-        const [parent, node] = queue.shift();
-        const rootItem = document.createElement("li");
-        if (node.children) {
-            rootItem.classList.add("bookmark-folder");
+        const childList = e.target.parentNode.querySelector('ul');
+        if (!childList) return;
 
-            const span = document.createElement("span");
-            span.classList.add("bookmark-folder-text");
-            const text = document.createTextNode(`📁${node.title}`);
-            span.addEventListener("click", (e) => {
-                e.currentTarget.parentElement.querySelector(".hidden").classList.toggle("active");
-                const active = e.currentTarget.parentElement.querySelector(".hidden").classList.contains("active");
-                const newOpenBookmarks = JSON.parse(localStorage.getItem("open-bookmarks")) ?? {};
-                if (active) {
-                    newOpenBookmarks[node.id] = null;
-                }
-                else {
-                    delete newOpenBookmarks[node.id];
-                }
-                localStorage.setItem("open-bookmarks", JSON.stringify(newOpenBookmarks))
-            });
-            span.appendChild(text);
-            rootItem.appendChild(span);
+        childList.hidden = !childList.hidden;
 
-            const list = document.createElement("ul");
-            list.classList.add("bookmark-list");
-            list.classList.add("hidden");
-            if (Object.hasOwn(openBookmarks, node.id)) list.classList.add("active");
-            node.children.map((n) => {
-                queue.push([list, n]);
-            })
-            rootItem.appendChild(list);
-        }
-        else {
-            const link = document.createElement("a");
-            link.setAttribute("href", node.url);
-            const text = document.createTextNode(node.title);
-            link.appendChild(text);
-            rootItem.appendChild(link);
-        }
-        parent.appendChild(rootItem);
-    }
+        const id = e.target.dataset.id;
+        // use object because hashset can't be stringified
+        const newOpenBookmarks = getLocalStorage("open-bookmarks", {});
+        if (!childList.hidden) newOpenBookmarks[id] = null;
+        else delete newOpenBookmarks[id];
+        setLocalStorage("open-bookmarks", newOpenBookmarks)
+    })
+
+    const elements = [];
+    createBookmarksHelper(root[0], openBookmarks, elements);
+    rootList.innerHTML = elements.join("");;
+
     return rootList;
 }
 
+// https://stackoverflow.com/questions/18393981/append-vs-html-vs-innerhtml-performance
+const createBookmarksHelper = (node, openBookmarks, elements) => {
+    if (node.children) {
+        elements.push(`<li class="bookmark-folder"><span class="bookmark-folder-text" data-id="${node.id}">📁${node.title}</span><ul ${Object.hasOwn(openBookmarks, node.id) ? "" : "hidden"}>`);
+        for (let i = 0; i < node.children.length; i++) {
+            createBookmarksHelper(node.children[i], openBookmarks, elements);
+        }
+        elements.push(`</ul></li>`)
+    }
+    else {
+        elements.push(`<li><a href=${node.url}>${node.title}</a></li>`);
+    }
+}
+//#endregion
+
+// WIP
 const loadGrid = () => {
     const rows = localStorage.getItem("rows") ?? DEFAULT_ROWS;
     const columns = localStorage.getItem("columns") ?? DEFAULT_COLS;
@@ -132,8 +149,10 @@ const createWidget = (type, extra) => {
     else if (type === WIDGET_TYPE_BOOKMARKS) {
         element = document.createElement("div");
         element.classList.add("grid-item");
-        chrome.bookmarks.getTree((results) => {
-            const bookmarks = createBookmarks(results);
+        chrome.bookmarks.getTree((root) => {
+            console.time();
+            const bookmarks = createBookmarks(root);
+            console.timeEnd();
             element.appendChild(bookmarks);
         })
     }
@@ -141,7 +160,7 @@ const createWidget = (type, extra) => {
         element = document.createElement("iframe");
         element.setAttribute("allowfullscreen", 1);
         element.classList.add("grid-item");
-        findFirstLivestream(extra).then((url) => {
+        getFirstLivestream(extra).then((url) => {
             if (url) element.setAttribute("src", url);
         })
     }
@@ -195,8 +214,7 @@ const loadEditGrid = () => {
         }
         else {
             div.classList.add("occupied-slot");
-            const text = document.createTextNode(activeWidget.name);
-            div.appendChild(text);
+            div.textContent = activeWidget.name;
 
             div.addEventListener("click", () => {
                 popupEditWidget(activeWidget, (result) => {
@@ -234,11 +252,12 @@ const initializeElement = (id, defaultValue) => {
 
 const loadOptions = () => {
     const modal = document.getElementById("options-modal");
+    modal.hidden = true;
     document.getElementById("options").addEventListener("click", () => {
-        modal.classList.add("active");
+        modal.hidden = false;
     })
     document.getElementById("options-modal-close").addEventListener("click", () => {
-        modal.classList.remove("active");
+        modal.hidden = true;
     })
 
     // todo: parallel promises?
@@ -256,8 +275,7 @@ const loadHeader = () => {
         urls.map((url) => {
             const link = document.createElement("a");
             link.setAttribute("href", url);
-            const text = document.createTextNode(url);
-            link.appendChild(text);
+            link.textContent = url;
             bar.appendChild(link);
         })
     }
@@ -289,8 +307,7 @@ const loadExtraOptions = (type, extra) => {
     else if (type === WIDGET_TYPE_YOUTUBE_LIVESTREAM) {
         const label = document.createElement("label");
         label.setAttribute("for", "stream-list");
-        const labelText = document.createTextNode("Channels:");
-        label.appendChild(labelText);
+        label.textContent = "Channels:";
         newOptions.push(label);
         newOptions.push(document.createElement("br"));
         const textArea = document.createElement("textarea");
@@ -303,29 +320,25 @@ const loadExtraOptions = (type, extra) => {
     else if (type === WIDGET_TYPE_YOUTUBE) {
         const typeLabel = document.createElement("label");
         typeLabel.setAttribute("for", "youtube-type");
-        const typelabelText = document.createTextNode("Video Type:");
-        typeLabel.appendChild(typelabelText);
+        typeLabel.textContent = "Video Type:";
         newOptions.push(typeLabel);
         newOptions.push(document.createElement("br"));
         const select= document.createElement("select");
         select.setAttribute("id", "youtube-type");
         const video = document.createElement("option");
         video.setAttribute("value", "video");
-        const videoText = document.createTextNode("Video");
-        video.appendChild(videoText);
+        video.textContent = "Video";
         select.appendChild(video);
         const playlist = document.createElement("option");
         playlist.setAttribute("value", "playlist");
-        const playlistText = document.createTextNode("Playlist");
-        playlist.appendChild(playlistText);
+        playlist.textContent = "Playlist";
         select.append(playlist);
         if (extra) select.value = extra.type;
         newOptions.push(select);
         newOptions.push(document.createElement("br"));
         const idLabel = document.createElement("label");
         idLabel.setAttribute("for", "youtube-id");
-        const idLabelText = document.createTextNode("ID:");
-        idLabel.appendChild(idLabelText);
+        idLabel.textContent = "ID:";
         newOptions.push(idLabel);
         newOptions.push(document.createElement("br"));
         const idInput = document.createElement("input");
@@ -353,6 +366,7 @@ const getExtraOptions = (type) => {
 
 const popupEditWidget = (widget, callback) => {
     const modal = document.getElementById("edit-widget-modal");
+    modal.hidden = false;
 
     const nameInput = document.getElementById("widget-name");
     const typeInput = document.getElementById("widget-type");
@@ -369,25 +383,23 @@ const popupEditWidget = (widget, callback) => {
         widget.name = nameInput.value;
         widget.type = typeInput.value;
         widget.extra = extra;
-        modal.classList.remove("active");
+        modal.hidden = true;
         callback({"widget": widget, "deleted": false});
     }
 
     const deleteWidget = document.getElementById("delete-widget");
     if (widget.id) {
-        deleteWidget.classList.remove("hidden");
+        deleteWidget.hidden = false;
         deleteWidget.onclick = () => {
             if (confirm("Are you sure?")) {
-                modal.classList.remove("active");
+                modal.hidden = true;
                 callback({"widget": widget, "deleted": true});
             }
         }
     }
     else {
-        deleteWidget.classList.add("hidden");
+        deleteWidget.hidden = true;
     }
-
-    modal.classList.add("active")
 }
 
 const loadToolbox = () => {
@@ -432,8 +444,7 @@ const loadToolbox = () => {
 
 const createWidgetElement = (text, widget) => {
     const element = document.createElement("div");
-    const addText = document.createTextNode(text);
-    element.appendChild(addText);
+    element.textContent = text;
     element.classList.add("widget");
     element.addEventListener("click", () => {
         popupEditWidget(widget, (result) => {
@@ -463,8 +474,8 @@ const loadSidebar = () => {
     const sideButton = document.getElementById("side-button");
     sideButton.addEventListener("click", () => {
         const toolbox = document.getElementById("widget-toolbox");
-        toolbox.classList.toggle("active")
-        if (toolbox.classList.contains("active")) {
+        toolbox.hidden = !toolbox.hidden;
+        if (!toolbox.hidden) {
             loadEditGrid();
         }
         else {
@@ -472,17 +483,23 @@ const loadSidebar = () => {
         }
     })
 
+    const toolbox = document.getElementById("widget-toolbox");
+    toolbox.hidden = true;
     loadToolbox();
 
-    document.getElementById("edit-widget-modal-close").addEventListener("click", () => {
+    const modal = document.getElementById("edit-widget-modal-close");
+    modal.addEventListener("click", () => {
         const modal = document.getElementById("edit-widget-modal");
-        modal.classList.remove("active");
+        modal.hidden = true;
     })
 }
 
-window.addEventListener("DOMContentLoaded", async () => {
+window.addEventListener("DOMContentLoaded", () => {
     loadSidebar();
     loadHeader();
     loadGrid();
     loadOptions();
+
+    const modal = document.getElementById("edit-widget-modal");
+    modal.hidden = true;
 })

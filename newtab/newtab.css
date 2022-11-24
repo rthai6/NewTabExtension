@@ -71,18 +71,11 @@ a {
   text-align: center;
 }
 
-.bookmark-list {
+ul {
   list-style-type: none;
 }
-.bookmark-folder-text {
+ul.li {
   cursor: pointer;
-}
-
-.hidden {
-  display: none;
-}
-.active {
-  display: block;
 }
 
 .control-button {
@@ -104,11 +97,7 @@ a {
   height: 100%;
   flex-grow: 1;
   background-color: black;
-  display: none;
   flex-flow: column;
-}
-#widget-toolbox.active {
-  display: flex;
   width: 10em;
 }
 
