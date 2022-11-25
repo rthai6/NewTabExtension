@@ -174,35 +174,35 @@ const createWidget = (type, extra) => {
 
 // WIP
 const loadEditGrid = () => {
-    const rows = localStorage.getItem("rows") ?? DEFAULT_ROWS;
-    const columns = localStorage.getItem("columns") ?? DEFAULT_COLS;
+    const rows = getLocalStorage("rows", DEFAULT_ROWS);
+    const columns = getLocalStorage("columns", DEFAULT_COLS);
+    const activeWidgets = getLocalStorage("active-widgets", {});
     const grid = document.getElementById("widget-grid");
-    const activeWidgets = JSON.parse(localStorage.getItem("active-widgets")) ?? {};
 
     const children = [];
     for (let i = 0; i < rows * columns; i ++) {
         const row = Math.floor(i / columns) + 1;
         const col = (i % columns) + 1;
         const div = document.createElement("div");
-        div.classList.add("grid-item");
+        addClass(div, "grid-item");
         const activeWidget = activeWidgets[JSON.stringify([row, col])];
         if (!activeWidget) {
             div.addEventListener("drop", (e) => {
                 e.preventDefault();
                 let widget = undefined;
-                const active = JSON.parse(localStorage.getItem("active-widgets")) ?? {};
+                const active = getLocalStorage("active-widgets", {});
                 if (e.dataTransfer.types.includes("widget")) {
-                    const inactive = JSON.parse(localStorage.getItem("inactive-widgets")) ?? {};
+                    const inactive = getLocalStorage("inactive-widgets", {});
                     widget = JSON.parse(e.dataTransfer.getData("widget"));
                     delete inactive[widget.id];
-                    localStorage.setItem("inactive-widgets", JSON.stringify(inactive));
+                    setLocalStorage("inactive-widgets", inactive);
                 }
                 if (e.dataTransfer.types.includes("active-widget")) {
                     widget = JSON.parse(e.dataTransfer.getData("active-widget"));
                     delete active[JSON.stringify([widget.row, widget.col])];
                 }
                 active[JSON.stringify([row, col])] = new ActiveWidget(widget, row, col);
-                localStorage.setItem("active-widgets", JSON.stringify(active));
+                setLocalStorage("active-widgets", active);
                 loadToolbox();
                 loadEditGrid();
             })
@@ -260,11 +260,9 @@ const loadOptions = () => {
         modal.hidden = true;
     })
 
-    // todo: parallel promises?
     initializeElement("header-links-list", "");
     initializeElement("rows", DEFAULT_ROWS);
     initializeElement("columns", DEFAULT_COLS);
-    // initializeElement("stream-list", "");
 }
 
 const loadHeader = () => {
