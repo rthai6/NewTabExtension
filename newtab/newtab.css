@@ -74,7 +74,7 @@ a {
 ul {
   list-style-type: none;
 }
-ul.li {
+li span {
   cursor: pointer;
 }
 

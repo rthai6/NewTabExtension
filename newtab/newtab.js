@@ -116,15 +116,15 @@ const createBookmarksHelper = (node, openBookmarks, elements) => {
 }
 //#endregion
 
-// WIP
-const loadGrid = () => {
-    const rows = localStorage.getItem("rows") ?? DEFAULT_ROWS;
-    const columns = localStorage.getItem("columns") ?? DEFAULT_COLS;
+//#region widgetgrid
+const createWidgetGrid = () => {
+    const rows = getLocalStorage("rows", DEFAULT_ROWS);
+    const columns = getLocalStorage("columns", DEFAULT_COLS);
+    const activeWidgets = getLocalStorage("active-widgets", {});
+
     const grid = document.getElementById("widget-grid");
     grid.style.gridTemplateRows = "1fr ".repeat(rows);
     grid.style.gridTemplateColumns = "1fr ".repeat(columns);
-
-    const activeWidgets = JSON.parse(localStorage.getItem("active-widgets")) ?? {};
 
     const children = [];
     for (let i = 0; i < rows * columns; i ++) {
@@ -134,9 +134,9 @@ const loadGrid = () => {
         if (activeWidget) {
             const widget = createWidget(activeWidget.type, activeWidget.extra);
             if (widget) {
-                children.push(widget);
                 widget.style.gridRow = row;
                 widget.style.gridColumn = col;
+                children.push(widget);
             }
         }
     }
@@ -148,18 +148,16 @@ const createWidget = (type, extra) => {
     if (type === WIDGET_TYPE_NONE) {}
     else if (type === WIDGET_TYPE_BOOKMARKS) {
         element = document.createElement("div");
-        element.classList.add("grid-item");
+        addClass(element, "grid-item");
         chrome.bookmarks.getTree((root) => {
-            console.time();
             const bookmarks = createBookmarks(root);
-            console.timeEnd();
             element.appendChild(bookmarks);
         })
     }
     else if (type === WIDGET_TYPE_YOUTUBE_LIVESTREAM) {
         element = document.createElement("iframe");
         element.setAttribute("allowfullscreen", 1);
-        element.classList.add("grid-item");
+        addClass(element, "grid-item");
         getFirstLivestream(extra).then((url) => {
             if (url) element.setAttribute("src", url);
         })
@@ -167,12 +165,14 @@ const createWidget = (type, extra) => {
     else if (type === WIDGET_TYPE_YOUTUBE) {
         element = document.createElement("iframe");
         element.setAttribute("allowfullscreen", 1);
-        element.classList.add("grid-item");
+        addClass(element, "grid-item");
         element.setAttribute("src", `https://www.youtube.com/embed${extra.type === "playlist" ? "?listType=playlist&list=" : "/"}${extra.id}`);
     }
     return element;
 }
+//#endregion
 
+// WIP
 const loadEditGrid = () => {
     const rows = localStorage.getItem("rows") ?? DEFAULT_ROWS;
     const columns = localStorage.getItem("columns") ?? DEFAULT_COLS;
@@ -479,7 +479,7 @@ const loadSidebar = () => {
             loadEditGrid();
         }
         else {
-            loadGrid();
+            createWidgetGrid();
         }
     })
 
@@ -497,7 +497,7 @@ const loadSidebar = () => {
 window.addEventListener("DOMContentLoaded", () => {
     loadSidebar();
     loadHeader();
-    loadGrid();
+    createWidgetGrid();
     loadOptions();
 
     const modal = document.getElementById("edit-widget-modal");
